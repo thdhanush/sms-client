@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import toast from 'react-hot-toast';
-import { 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  ArrowLeft, 
-  ChevronLeft, 
+import {
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  ArrowLeft,
+  ChevronLeft,
   ChevronRight,
   Users,
   GraduationCap,
@@ -27,25 +27,29 @@ import {
   UserRoundCheck,
   AlertCircle,
   Save,
-  User
+  User,
+  Award,
 } from 'lucide-react';
 
 // Utility function to format standard display consistently
 const formatStandard = (standard) => {
   if (!standard) return 'N/A';
   const stdStr = String(standard).trim();
-  
+
   // Check if it's Balvatika
-  if (stdStr.toLowerCase().includes('balvatika') || stdStr.toLowerCase().includes('bal')) {
+  if (
+    stdStr.toLowerCase().includes('balvatika') ||
+    stdStr.toLowerCase().includes('bal')
+  ) {
     return 'Balvatika';
   }
-  
+
   // Extract number from various formats (9, Grade-9, STD-9, Standard 9, etc.)
   const match = stdStr.match(/\d+/);
   if (match) {
     return `STD-${match[0]}`;
   }
-  
+
   // If no number found, return as is
   return stdStr;
 };
@@ -82,7 +86,7 @@ const ManageStudents = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/student-management/stats/overview', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setStats(response.data.stats);
     } catch (error) {
@@ -95,8 +99,15 @@ const ManageStudents = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get('/student-management', {
-        params: { page, search, standard: standardFilter, limit: 20, sortBy, sortOrder },
-        headers: { Authorization: `Bearer ${token}` }
+        params: {
+          page,
+          search,
+          standard: standardFilter,
+          limit: 20,
+          sortBy,
+          sortOrder,
+        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setStudents(response.data.students);
       setPagination(response.data.pagination);
@@ -113,9 +124,13 @@ const ManageStudents = () => {
     setEditForm({
       name: student.name,
       email: student.email || '',
-      dob: student.dateOfBirth ? student.dateOfBirth.split('T')[0] : (student.dob ? student.dob.split('T')[0] : ''),
+      dob: student.dateOfBirth
+        ? student.dateOfBirth.split('T')[0]
+        : student.dob
+          ? student.dob.split('T')[0]
+          : '',
       standard: student.standard,
-      parentContact: student.parentContact || ''
+      parentContact: student.parentContact || '',
     });
     setEditErrors({});
     setShowEditModal(true);
@@ -123,23 +138,26 @@ const ManageStudents = () => {
 
   const validateEditForm = () => {
     const errors = {};
-    
+
     if (!editForm.name || editForm.name.trim().length < 2) {
       errors.name = 'Name must be at least 2 characters';
     }
-    
+
     if (editForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email)) {
       errors.email = 'Invalid email format';
     }
-    
+
     if (!editForm.standard || editForm.standard.trim().length === 0) {
       errors.standard = 'Standard is required';
     }
-    
-    if (editForm.parentContact && !/^[0-9]{10}$/.test(editForm.parentContact.replace(/[-\s]/g, ''))) {
+
+    if (
+      editForm.parentContact &&
+      !/^[0-9]{10}$/.test(editForm.parentContact.replace(/[-\s]/g, ''))
+    ) {
       errors.parentContact = 'Invalid phone number (10 digits required)';
     }
-    
+
     return errors;
   };
 
@@ -153,7 +171,7 @@ const ManageStudents = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(`/student-management/${editingStudent}`, editForm, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Student updated successfully!');
       setShowEditModal(false);
@@ -169,14 +187,18 @@ const ManageStudents = () => {
   };
 
   const handleDelete = async (studentId, studentName) => {
-    if (!window.confirm(`Are you sure you want to delete ${studentName}? This will also delete all their results.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${studentName}? This will also delete all their results.`
+      )
+    ) {
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`/student-management/${studentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       toast.success('Student deleted successfully!');
       fetchStudents();
@@ -193,17 +215,25 @@ const ManageStudents = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to delete ${selectedStudents.size} students? This will also delete all their results.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedStudents.size} students? This will also delete all their results.`
+      )
+    ) {
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('/student-management/bulk-delete', {
-        studentIds: Array.from(selectedStudents)
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(
+        '/student-management/bulk-delete',
+        {
+          studentIds: Array.from(selectedStudents),
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       toast.success(`Successfully deleted ${selectedStudents.size} students!`);
       setSelectedStudents(new Set());
       fetchStudents();
@@ -216,11 +246,14 @@ const ManageStudents = () => {
 
   const handleViewResults = (student) => {
     // Store student info in localStorage for the results page
-    localStorage.setItem('viewingStudentInfo', JSON.stringify({
-      grNumber: student.grNumber,
-      name: student.name,
-      standard: student.standard
-    }));
+    localStorage.setItem(
+      'viewingStudentInfo',
+      JSON.stringify({
+        grNumber: student.grNumber,
+        name: student.name,
+        standard: student.standard,
+      })
+    );
     navigate(`/admin/results?grNumber=${student.grNumber}`);
   };
 
@@ -228,7 +261,7 @@ const ManageStudents = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`/student-management/${studentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setViewingStudent(response.data);
     } catch (error) {
@@ -251,7 +284,7 @@ const ManageStudents = () => {
     if (selectedStudents.size === students.length) {
       setSelectedStudents(new Set());
     } else {
-      setSelectedStudents(new Set(students.map(s => s._id)));
+      setSelectedStudents(new Set(students.map((s) => s._id)));
     }
   };
 
@@ -262,7 +295,7 @@ const ManageStudents = () => {
       const response = await axios.get('/student-management/export', {
         params: { search, standard: standardFilter },
         headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
+        responseType: 'blob',
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -294,8 +327,12 @@ const ManageStudents = () => {
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Student Management</h1>
-              <p className="text-gray-600 mt-1">Comprehensive student management system</p>
+              <h1 className="text-3xl font-bold text-gray-800">
+                Student Management
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Comprehensive student management system
+              </p>
             </div>
           </div>
 
@@ -333,22 +370,58 @@ const ManageStudents = () => {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-cyan-50 border-2 border-cyan-200 rounded-lg p-6">
+              <div className="flex items-center gap-3">
+                <Users className="w-8 h-8 text-cyan-600" />
+                <div>
+                  <p className="text-sm text-cyan-600 font-medium">
+                    Total Students
+                  </p>
+                  <p className="text-2xl font-bold text-cyan-700">
+                    {stats.totalStudents}
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
               <div className="flex items-center gap-3">
                 <Users className="w-8 h-8 text-blue-600" />
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Total Students</p>
-                  <p className="text-2xl font-bold text-blue-700">{stats.totalStudents}</p>
+                  <p className="text-sm text-blue-600 font-medium">
+                    Total Teaching Students
+                  </p>
+                  <p className="text-2xl font-bold text-blue-700">
+                    {stats.totalTeachingStudents}
+                  </p>
                 </div>
               </div>
             </div>
+            {stats.classTeacherFor && (
+              <div className="bg-pink-50 border-2 border-pink-200 rounded-lg p-6">
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-8 h-8 text-pink-600" />
+                  <div>
+                    <p className="text-sm text-pink-600 font-medium">
+                      Class Students ({stats.classTeacherFor})
+                    </p>
+                    <p className="text-2xl font-bold text-pink-700">
+                      {stats.totalClassStudents}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-8 h-8 text-green-600" />
                 <div>
-                  <p className="text-sm text-green-600 font-medium">New (30 days)</p>
-                  <p className="text-2xl font-bold text-green-700">{stats.recentRegistrations}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    New (30 days)
+                  </p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {stats.recentRegistrations}
+                  </p>
                 </div>
               </div>
             </div>
@@ -357,8 +430,12 @@ const ManageStudents = () => {
               <div className="flex items-center gap-3">
                 <Mail className="w-8 h-8 text-purple-600" />
                 <div>
-                  <p className="text-sm text-purple-600 font-medium">With Email</p>
-                  <p className="text-2xl font-bold text-purple-700">{stats.studentsWithEmail}</p>
+                  <p className="text-sm text-purple-600 font-medium">
+                    With Email
+                  </p>
+                  <p className="text-2xl font-bold text-purple-700">
+                    {stats.studentsWithEmail}
+                  </p>
                 </div>
               </div>
             </div>
@@ -367,9 +444,68 @@ const ManageStudents = () => {
               <div className="flex items-center gap-3">
                 <GraduationCap className="w-8 h-8 text-orange-600" />
                 <div>
-                  <p className="text-sm text-orange-600 font-medium">Standards</p>
-                  <p className="text-2xl font-bold text-orange-700">{stats.byStandard.length}</p>
+                  <p className="text-sm text-orange-600 font-medium">
+                    Standards
+                  </p>
+                  <p className="text-2xl font-bold text-orange-700">
+                    {stats.byStandard.length}
+                  </p>
                 </div>
+              </div>
+            </div>
+            <div className="mt-2">
+              <p className="text-sm font-medium mb-1">Students by Standard</p>
+              <div className="flex gap-2">
+                {stats.byStandard.map((cls, index) => {
+                  const colors = [
+                    {
+                      bg: 'bg-red-50',
+                      border: 'border-red-200',
+                      text: 'text-red-600',
+                    },
+                    {
+                      bg: 'bg-blue-50',
+                      border: 'border-blue-200',
+                      text: 'text-blue-600',
+                    },
+                    {
+                      bg: 'bg-green-50',
+                      border: 'border-green-200',
+                      text: 'text-green-600',
+                    },
+                    {
+                      bg: 'bg-purple-50',
+                      border: 'border-purple-200',
+                      text: 'text-purple-600',
+                    },
+                    {
+                      bg: 'bg-pink-50',
+                      border: 'border-pink-200',
+                      text: 'text-pink-600',
+                    },
+                    {
+                      bg: 'bg-teal-50',
+                      border: 'border-teal-200',
+                      text: 'text-teal-600',
+                    },
+                  ];
+                  const color = colors[index % colors.length];
+
+                  return (
+                    <div
+                      key={cls._id}
+                      className={`${color.bg} ${color.border} border-2 rounded-lg p-2 flex flex-col items-center justify-center min-w-[90px]`}
+                    >
+                      <Award className={`w-4 h-4 ${color.text} mb-1`} />
+                      <p className={`text-[10px] font-medium ${color.text}`}>
+                        {cls._id}
+                      </p>
+                      <p className={`text-xs font-bold ${color.text}`}>
+                        {cls.count}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -452,7 +588,10 @@ const ManageStudents = () => {
               {search && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1">
                   Search: {search}
-                  <button onClick={() => setSearch('')} className="hover:text-blue-900">
+                  <button
+                    onClick={() => setSearch('')}
+                    className="hover:text-blue-900"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -460,7 +599,10 @@ const ManageStudents = () => {
               {standardFilter && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1">
                   Standard: {standardFilter}
-                  <button onClick={() => setStandardFilter('')} className="hover:text-blue-900">
+                  <button
+                    onClick={() => setStandardFilter('')}
+                    className="hover:text-blue-900"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -480,20 +622,35 @@ const ManageStudents = () => {
                       onClick={toggleSelectAll}
                       className="flex items-center gap-2 text-xs font-semibold text-gray-600 uppercase hover:text-gray-800"
                     >
-                      {selectedStudents.size === students.length && students.length > 0 ? (
+                      {selectedStudents.size === students.length &&
+                      students.length > 0 ? (
                         <CheckSquare className="w-5 h-5 text-blue-600" />
                       ) : (
                         <Square className="w-5 h-5" />
                       )}
                     </button>
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">GR Number</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Standard</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Parent Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Results</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    GR Number
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Standard
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Parent Contact
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Results
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -507,13 +664,19 @@ const ManageStudents = () => {
                   </tr>
                 ) : students.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-12 text-center text-gray-500">
+                    <td
+                      colSpan="8"
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
                       No students found
                     </td>
                   </tr>
                 ) : (
                   students.map((student) => (
-                    <tr key={student._id} className={`hover:bg-gray-50 ${selectedStudents.has(student._id) ? 'bg-blue-50' : ''}`}>
+                    <tr
+                      key={student._id}
+                      className={`hover:bg-gray-50 ${selectedStudents.has(student._id) ? 'bg-blue-50' : ''}`}
+                    >
                       <td className="px-6 py-4">
                         <button
                           onClick={() => toggleSelectStudent(student._id)}
@@ -538,13 +701,19 @@ const ManageStudents = () => {
                         </button>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">{formatStandard(student.standard)}</span>
+                        <span className="text-sm text-gray-600">
+                          {formatStandard(student.standard)}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">{student.email || '-'}</span>
+                        <span className="text-sm text-gray-600">
+                          {student.email || '-'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-600">{student.parentContact || '-'}</span>
+                        <span className="text-sm text-gray-600">
+                          {student.parentContact || '-'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <button
@@ -572,7 +741,9 @@ const ManageStudents = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(student._id, student.name)}
+                            onClick={() =>
+                              handleDelete(student._id, student.name)
+                            }
                             className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete Student"
                           >
@@ -591,7 +762,9 @@ const ManageStudents = () => {
           {pagination.pages > 1 && (
             <div className="bg-gray-50 px-6 py-4 border-t-2 border-gray-200 flex items-center justify-between">
               <p className="text-sm text-gray-600">
-                Showing {((page - 1) * pagination.limit) + 1} to {Math.min(page * pagination.limit, pagination.total)} of {pagination.total} students
+                Showing {(page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} students
               </p>
               <div className="flex gap-2">
                 <button
@@ -618,16 +791,18 @@ const ManageStudents = () => {
 
         {/* Edit Student Modal */}
         {showEditModal && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setShowEditModal(false)}
           >
-            <div 
+            <div
               className="bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b-2 border-gray-200/50 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-800">Edit Student</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Edit Student
+                </h2>
                 <button
                   onClick={() => setShowEditModal(false)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -647,7 +822,9 @@ const ManageStudents = () => {
                     <input
                       type="text"
                       value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, name: e.target.value })
+                      }
                       className={`w-full px-4 py-2.5 border-2 ${editErrors.name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                       placeholder="Enter student name"
                     />
@@ -668,7 +845,9 @@ const ManageStudents = () => {
                     <input
                       type="email"
                       value={editForm.email}
-                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, email: e.target.value })
+                      }
                       className={`w-full px-4 py-2.5 border-2 ${editErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                       placeholder="student@example.com"
                     />
@@ -689,7 +868,9 @@ const ManageStudents = () => {
                     <input
                       type="date"
                       value={editForm.dob}
-                      onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, dob: e.target.value })
+                      }
                       className="w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     />
                   </div>
@@ -702,7 +883,9 @@ const ManageStudents = () => {
                     </label>
                     <select
                       value={editForm.standard}
-                      onChange={(e) => setEditForm({ ...editForm, standard: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({ ...editForm, standard: e.target.value })
+                      }
                       className={`w-full px-4 py-2.5 border-2 ${editErrors.standard ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                     >
                       <option value="">Select Standard</option>
@@ -733,7 +916,12 @@ const ManageStudents = () => {
                     <input
                       type="text"
                       value={editForm.parentContact}
-                      onChange={(e) => setEditForm({ ...editForm, parentContact: e.target.value })}
+                      onChange={(e) =>
+                        setEditForm({
+                          ...editForm,
+                          parentContact: e.target.value,
+                        })
+                      }
                       className={`w-full px-4 py-2.5 border-2 ${editErrors.parentContact ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                       placeholder="10-digit mobile number"
                     />
@@ -769,16 +957,18 @@ const ManageStudents = () => {
 
         {/* Student Details Modal */}
         {viewingStudent && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
             onClick={() => setViewingStudent(null)}
           >
-            <div 
+            <div
               className="bg-white/95 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border border-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sticky top-0 bg-white/90 backdrop-blur-md border-b-2 border-gray-200/50 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-800">Student Details</h2>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Student Details
+                </h2>
                 <button
                   onClick={() => setViewingStudent(null)}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -795,28 +985,36 @@ const ManageStudents = () => {
                       <Hash className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <p className="text-sm text-gray-600">GR Number</p>
-                        <p className="text-lg font-semibold text-gray-900">{viewingStudent.student.grNumber}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {viewingStudent.student.grNumber}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Users className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <p className="text-sm text-gray-600">Name</p>
-                        <p className="text-lg font-semibold text-gray-900">{viewingStudent.student.name}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {viewingStudent.student.name}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <GraduationCap className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <p className="text-sm text-gray-600">Standard</p>
-                        <p className="text-lg font-semibold text-gray-900">{formatStandard(viewingStudent.student.standard)}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {formatStandard(viewingStudent.student.standard)}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
                       <Mail className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <p className="text-sm text-gray-600">Email</p>
-                        <p className="text-lg font-semibold text-gray-900">{viewingStudent.student.email || 'Not provided'}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {viewingStudent.student.email || 'Not provided'}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -824,7 +1022,23 @@ const ManageStudents = () => {
                       <div>
                         <p className="text-sm text-gray-600">Date of Birth</p>
                         <p className="text-lg font-semibold text-gray-900">
-                          {viewingStudent.student.dateOfBirth ? new Date(viewingStudent.student.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : (viewingStudent.student.dob ? new Date(viewingStudent.student.dob).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not provided')}
+                          {viewingStudent.student.dateOfBirth
+                            ? new Date(
+                                viewingStudent.student.dateOfBirth
+                              ).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
+                            : viewingStudent.student.dob
+                              ? new Date(
+                                  viewingStudent.student.dob
+                                ).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
+                              : 'Not provided'}
                         </p>
                       </div>
                     </div>
@@ -832,7 +1046,10 @@ const ManageStudents = () => {
                       <Phone className="w-5 h-5 text-blue-600 mt-1" />
                       <div>
                         <p className="text-sm text-gray-600">Parent Contact</p>
-                        <p className="text-lg font-semibold text-gray-900">{viewingStudent.student.parentContact || 'Not provided'}</p>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {viewingStudent.student.parentContact ||
+                            'Not provided'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -844,27 +1061,47 @@ const ManageStudents = () => {
                     <FileSpreadsheet className="w-5 h-5" />
                     Results ({viewingStudent.results.length})
                   </h3>
-                  
+
                   {viewingStudent.results.length === 0 ? (
-                    <p className="text-gray-500 text-center py-8">No results found for this student</p>
+                    <p className="text-gray-500 text-center py-8">
+                      No results found for this student
+                    </p>
                   ) : (
                     <div className="space-y-4 max-h-96 overflow-y-auto">
                       {viewingStudent.results.map((result) => (
-                        <div key={result._id} className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                        <div
+                          key={result._id}
+                          className="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+                        >
                           <div className="flex items-center justify-between mb-3">
                             <div>
-                              <h4 className="font-semibold text-gray-900">{result.term || 'Term-1'}</h4>
-                              <p className="text-sm text-gray-600">{formatStandard(result.standard)} - {result.academicYear || '2024-25'}</p>
+                              <h4 className="font-semibold text-gray-900">
+                                {result.term || 'Term-1'}
+                              </h4>
+                              <p className="text-sm text-gray-600">
+                                {formatStandard(result.standard)} -{' '}
+                                {result.academicYear || '2024-25'}
+                              </p>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-500">
-                                {new Date(result.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                {new Date(result.createdAt).toLocaleDateString(
+                                  'en-US',
+                                  {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                  }
+                                )}
                               </span>
                               <button
                                 onClick={() => {
                                   setViewingStudent(null);
                                   const role = localStorage.getItem('role');
-                                  const editPath = role === 'teacher' ? `/teacher/edit-result/${result._id}` : `/admin/edit-result/${result._id}`;
+                                  const editPath =
+                                    role === 'teacher'
+                                      ? `/teacher/edit-result/${result._id}`
+                                      : `/admin/edit-result/${result._id}`;
                                   navigate(editPath);
                                 }}
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -875,14 +1112,20 @@ const ManageStudents = () => {
                             </div>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {result.subjects && result.subjects.map((subject, idx) => (
-                              <div key={idx} className="bg-gray-50 rounded px-3 py-2">
-                                <p className="text-xs text-gray-600">{subject.name}</p>
-                                <p className="font-semibold text-gray-900">
-                                  {subject.marks}/{subject.maxMarks}
-                                </p>
-                              </div>
-                            ))}
+                            {result.subjects &&
+                              result.subjects.map((subject, idx) => (
+                                <div
+                                  key={idx}
+                                  className="bg-gray-50 rounded px-3 py-2"
+                                >
+                                  <p className="text-xs text-gray-600">
+                                    {subject.name}
+                                  </p>
+                                  <p className="font-semibold text-gray-900">
+                                    {subject.marks}/{subject.maxMarks}
+                                  </p>
+                                </div>
+                              ))}
                           </div>
                           {result.remarks && (
                             <p className="mt-3 text-sm text-gray-600 italic">

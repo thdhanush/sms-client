@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { UserPlus, Save, ArrowLeft, User, Hash, Calendar, GraduationCap, Mail, Phone } from 'lucide-react';
+import {
+  UserPlus,
+  Save,
+  ArrowLeft,
+  User,
+  Hash,
+  Calendar,
+  GraduationCap,
+  Mail,
+  Phone,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from '../api/axios';
@@ -13,14 +23,14 @@ const RegisterStudent = () => {
     dateOfBirth: '',
     standard: '',
     email: '',
-    parentContact: ''
+    parentContact: '',
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -47,12 +57,12 @@ const RegisterStudent = () => {
       const token = localStorage.getItem('token');
       const response = await axios.post('/bulk-students/register', formData, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       toast.success('Student registered successfully!');
-      
+
       // Reset form
       setFormData({
         grNumber: '',
@@ -60,16 +70,17 @@ const RegisterStudent = () => {
         dateOfBirth: '',
         standard: '',
         email: '',
-        parentContact: ''
+        parentContact: '',
       });
 
       // Optionally navigate back to dashboard after a delay
       setTimeout(() => {
         navigate('/teacher/dashboard');
       }, 1500);
-
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to register student');
+      toast.error(
+        error.response?.data?.message || 'Failed to register student'
+      );
       console.error('Registration error:', error);
     } finally {
       setLoading(false);
@@ -96,9 +107,7 @@ const RegisterStudent = () => {
             <UserPlus className="mr-3 h-8 w-8 text-gray-900" />
             Register New Student
           </h1>
-          <p className="text-gray-600 mt-2">
-            Add a new student to the system
-          </p>
+          <p className="text-gray-600 mt-2">Add a new student to the system</p>
         </div>
 
         {/* Form Card */}
@@ -113,7 +122,10 @@ const RegisterStudent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* GR Number */}
                 <div>
-                  <label htmlFor="grNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="grNumber"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <Hash className="inline h-4 w-4 mr-1" />
                     GR Number <span className="text-red-500">*</span>
                   </label>
@@ -131,7 +143,10 @@ const RegisterStudent = () => {
 
                 {/* Student Name */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <User className="inline h-4 w-4 mr-1" />
                     Student Name <span className="text-red-500">*</span>
                   </label>
@@ -149,7 +164,10 @@ const RegisterStudent = () => {
 
                 {/* Date of Birth */}
                 <div>
-                  <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="dateOfBirth"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <Calendar className="inline h-4 w-4 mr-1" />
                     Date of Birth <span className="text-red-500">*</span>
                   </label>
@@ -166,7 +184,10 @@ const RegisterStudent = () => {
 
                 {/* Standard */}
                 <div>
-                  <label htmlFor="standard" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="standard"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <GraduationCap className="inline h-4 w-4 mr-1" />
                     Standard/Class <span className="text-red-500">*</span>
                   </label>
@@ -179,15 +200,18 @@ const RegisterStudent = () => {
                     required
                   >
                     <option value="">Select Standard</option>
-                    <option value="Balvatika">Balvatika</option>
-                    <option value="1">STD-1</option>
-                    <option value="2">STD-2</option>
-                    <option value="3">STD-3</option>
-                    <option value="4">STD-4</option>
-                    <option value="5">STD-5</option>
-                    <option value="6">STD-6</option>
-                    <option value="7">STD-7</option>
-                    <option value="8">STD-8</option>
+                    <option value="STD 1">STD-1</option>
+                    <option value="STD 2">STD-2</option>
+                    <option value="STD 3">STD-3</option>
+                    <option value="STD 4">STD-4</option>
+                    <option value="STD 5">STD-5</option>
+                    <option value="STD 6">STD-6</option>
+                    <option value="STD 7">STD-7</option>
+                    <option value="STB 8">STD-8</option>
+                    <option value="STB 9">STD-8</option>
+                    <option value="STB 10">STD-8</option>
+                    <option value="STB 11">STD-8</option>
+                    <option value="STB 12">STD-8</option>
                   </select>
                 </div>
               </div>
@@ -201,7 +225,10 @@ const RegisterStudent = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <Mail className="inline h-4 w-4 mr-1" />
                     Email Address
                   </label>
@@ -218,7 +245,10 @@ const RegisterStudent = () => {
 
                 {/* Parent Contact */}
                 <div>
-                  <label htmlFor="parentContact" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="parentContact"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     <Phone className="inline h-4 w-4 mr-1" />
                     Parent Contact Number
                   </label>
@@ -238,8 +268,9 @@ const RegisterStudent = () => {
             {/* Information Note */}
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-gray-700">
-                <strong>Note:</strong> The student will be able to login using their GR Number and Date of Birth. 
-                Make sure the GR Number is unique and the Date of Birth is accurate.
+                <strong>Note:</strong> The student will be able to login using
+                their GR Number and Date of Birth. Make sure the GR Number is
+                unique and the Date of Birth is accurate.
               </p>
             </div>
 
@@ -263,9 +294,25 @@ const RegisterStudent = () => {
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      ></path>
                     </svg>
                     Registering...
                   </>
@@ -282,9 +329,12 @@ const RegisterStudent = () => {
 
         {/* Help Card */}
         <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
-          <h3 className="text-md font-semibold text-gray-900 mb-3">Need to register multiple students?</h3>
+          <h3 className="text-md font-semibold text-gray-900 mb-3">
+            Need to register multiple students?
+          </h3>
           <p className="text-sm text-gray-600 mb-3">
-            If you have many students to register, use our bulk upload feature to save time.
+            If you have many students to register, use our bulk upload feature
+            to save time.
           </p>
           <button
             onClick={() => navigate('/teacher/bulk-upload-students')}

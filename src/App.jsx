@@ -33,6 +33,7 @@ import TeacherEditResult from './components/TeacherEditResult';
 import BulkResultUpload from './components/BulkResultUpload';
 import ManageStudents from './components/ManageStudents';
 import TeacherMarkAttendance from './components/TeacherMarkAttendance';
+import TeacherMarkStudentsAttendance from './components/TeacherMarkStudentsAttendance';
 
 // Admin Components
 import AdminDashboard from './components/AdminDashboard';
@@ -43,7 +44,7 @@ import AdminEditTeacher from './components/AdminEditTeacher';
 import TeacherTimetable from './components/TeacherTimetable';
 import AdminAttendanceView from './components/AdminAttendanceView';
 import AdminHolidaysView from './components/AdminHolidaysView';
-import AdminStudentAttendanceView from "./components/AdminStudentAttendanceView"
+import AdminStudentAttendanceView from './components/AdminStudentAttendanceView';
 
 // Loading fallback component
 const PageLoader = () => (
@@ -60,8 +61,8 @@ function App() {
           <ScrollToTop />
           <div className="min-h-screen bg-gray-50">
             {/* Enhanced Toaster with custom styling */}
-            <Toaster 
-              position="top-right" 
+            <Toaster
+              position="top-right"
               reverseOrder={false}
               toastOptions={{
                 duration: 4000,
@@ -69,7 +70,8 @@ function App() {
                   background: 'white',
                   border: '1px solid #e5e7eb',
                   borderRadius: '12px',
-                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  boxShadow:
+                    '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
                 },
                 success: {
                   iconTheme: {
@@ -85,50 +87,132 @@ function App() {
                 },
               }}
             />
-            
+
             <Navbar />
-            
+
             <main>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/activities" element={<Activities />} />
 
-                  <Route path="/student/register" element={<StudentRegister />} />
+                  <Route
+                    path="/student/register"
+                    element={<StudentRegister />}
+                  />
                   <Route path="/student/login" element={<StudentLogin />} />
-                  <Route path="/student/dashboard" element={<StudentDashboard />} />
-                  <Route path="/student/result/:resultId" element={<StudentResultDetail />} />
+                  <Route
+                    path="/student/dashboard"
+                    element={<StudentDashboard />}
+                  />
+                  <Route
+                    path="/student/result/:resultId"
+                    element={<StudentResultDetail />}
+                  />
                   <Route path="/student/view" element={<ViewResult />} />
 
                   {/* Teacher Routes */}
-                  <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-                  <Route path="/teacher/mark-attendance" element={<TeacherMarkAttendance />} />
-                  <Route path="/teacher/upload-result" element={<UploadResult />} />
-                  <Route path="/teacher/edit-result/:id" element={<TeacherEditResult />} />
-                  <Route path="/teacher/bulk-upload-students" element={<BulkStudentUpload />} />
-                  <Route path="/teacher/register-student" element={<RegisterStudent />} />
-                  <Route path="/teacher/bulk-upload-results" element={<BulkResultUpload />} />
-                  <Route path="/teacher/manage-students" element={<ManageStudents />} />
-                  <Route path="/teacher/view-result" element={<AdminResultView />} />
+                  <Route
+                    path="/teacher/dashboard"
+                    element={<TeacherDashboard />}
+                  />
+                  <Route
+                    path="/teacher/self-attendance"
+                    element={<TeacherMarkAttendance />}
+                  />
+                  <Route
+                    path="/teacher/upload-result"
+                    element={<UploadResult />}
+                  />
+                  <Route
+                    path="/teacher/edit-result/:id"
+                    element={<TeacherEditResult />}
+                  />
+                  <Route
+                    path="/teacher/bulk-upload-students"
+                    element={<BulkStudentUpload />}
+                  />
+                  <Route
+                    path="/teacher/register-student"
+                    element={<RegisterStudent />}
+                  />
+                  <Route
+                    path="/teacher/bulk-upload-results"
+                    element={<BulkResultUpload />}
+                  />
+                  <Route
+                    path="/teacher/manage-students"
+                    element={<ManageStudents />}
+                  />
+                  <Route
+                    path="/teacher/view-result"
+                    element={<AdminResultView />}
+                  />
+                  <Route
+                    path="/teacher/students-attendance"
+                    element={<TeacherMarkStudentsAttendance />}
+                  />
 
                   {/* Admin Routes */}
                   <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                  <Route path="/admin/teacher-attendance" element={<AdminAttendanceView />} />
-                  <Route path="/admin/holidays" element={<AdminHolidaysView />} />
-                  <Route path="/admin/create-teacher" element={<AdminCreateTeacher />} />
-                  <Route path="/admin/create-student" element={<AdminCreateStudent />} />
-                  <Route path="/admin/bulk-upload-students" element={<BulkStudentUpload />} />
-                  <Route path="/admin/register-student" element={<RegisterStudent />} />
-                  <Route path="/admin/promote-students" element={<PromoteStudents />} />
-                  <Route path="/admin/teacher/:teacherId" element={<AdminTeacherDetail />} />
-                  <Route path="/admin/edit-teacher/:teacherId" element={<AdminEditTeacher />} />
-                  <Route path="/admin/teacher/:teacherId/timetable" element={<TeacherTimetable />} />
+                  <Route
+                    path="/admin/teacher-attendance"
+                    element={<AdminAttendanceView />}
+                  />
+                  <Route
+                    path="/admin/holidays"
+                    element={<AdminHolidaysView />}
+                  />
+                  <Route
+                    path="/admin/create-teacher"
+                    element={<AdminCreateTeacher />}
+                  />
+                  <Route
+                    path="/admin/create-student"
+                    element={<AdminCreateStudent />}
+                  />
+                  <Route
+                    path="/admin/bulk-upload-students"
+                    element={<BulkStudentUpload />}
+                  />
+                  <Route
+                    path="/admin/register-student"
+                    element={<RegisterStudent />}
+                  />
+                  <Route
+                    path="/admin/promote-students"
+                    element={<PromoteStudents />}
+                  />
+                  <Route
+                    path="/admin/teacher/:teacherId"
+                    element={<AdminTeacherDetail />}
+                  />
+                  <Route
+                    path="/admin/edit-teacher/:teacherId"
+                    element={<AdminEditTeacher />}
+                  />
+                  <Route
+                    path="/admin/teacher/:teacherId/timetable"
+                    element={<TeacherTimetable />}
+                  />
                   <Route path="/admin/upload" element={<UploadResult />} />
                   <Route path="/admin/results" element={<AdminResultView />} />
-                  <Route path="/admin/edit-result/:id" element={<EditResult />} />
-                  <Route path="/admin/bulk-upload-results" element={<BulkResultUpload />} />
-                  <Route path="/admin/manage-students" element={<ManageStudents />} />
-                  <Route path="/admin/student-attendance" element={<AdminStudentAttendanceView />} />
+                  <Route
+                    path="/admin/edit-result/:id"
+                    element={<EditResult />}
+                  />
+                  <Route
+                    path="/admin/bulk-upload-results"
+                    element={<BulkResultUpload />}
+                  />
+                  <Route
+                    path="/admin/manage-students"
+                    element={<ManageStudents />}
+                  />
+                  <Route
+                    path="/admin/student-attendance"
+                    element={<AdminStudentAttendanceView />}
+                  />
                 </Routes>
               </Suspense>
             </main>

@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User, LogOut, BookOpen, Users, TrendingUp, FileText,
-  Upload, Edit, Trash2, Award, Calendar, UserPlus, Clock
+  User,
+  LogOut,
+  BookOpen,
+  Users,
+  TrendingUp,
+  FileText,
+  Upload,
+  Edit,
+  Trash2,
+  Award,
+  Calendar,
+  UserPlus,
+  Clock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from '../api/axios';
@@ -13,7 +24,10 @@ const formatStandard = (standard) => {
   const stdStr = String(standard).trim();
 
   // Check if it's Balvatika
-  if (stdStr.toLowerCase().includes('balvatika') || stdStr.toLowerCase().includes('bal')) {
+  if (
+    stdStr.toLowerCase().includes('balvatika') ||
+    stdStr.toLowerCase().includes('bal')
+  ) {
     return 'Balvatika';
   }
 
@@ -76,7 +90,7 @@ const TeacherDashboard = () => {
       // Fetch Dashboard Stats & Teacher Info (Static)
       const dashboardRes = await axios.get('/teacher/dashboard', {
         headers: { Authorization: `Bearer ${token}` },
-        timeout: 15000
+        timeout: 15000,
       });
 
       setDashboard(dashboardRes.data);
@@ -87,23 +101,31 @@ const TeacherDashboard = () => {
 
       // Fetch timetable (don't fail if timetable doesn't exist)
       try {
-        const timetableRes = await axios.get('/timetable/teacher/timetable?academicYear=2024-25', {
-          headers: { Authorization: `Bearer ${token}` },
-          timeout: 15000
-        });
+        const timetableRes = await axios.get(
+          '/timetable/teacher/timetable?academicYear=2024-25',
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 15000,
+          }
+        );
 
         if (timetableRes.data.timetable) {
           setTimetable(timetableRes.data.timetable);
         }
       } catch (timetableError) {
-        console.log('No timetable found or error fetching timetable:', timetableError.message);
+        console.log(
+          'No timetable found or error fetching timetable:',
+          timetableError.message
+        );
       }
     } catch (error) {
       console.error('Error fetching data:', error);
       if (error.code === 'ECONNABORTED') {
         toast.error('Request timeout. Server might be slow. Please try again.');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to fetch dashboard data');
+        toast.error(
+          error.response?.data?.message || 'Failed to fetch dashboard data'
+        );
       }
     } finally {
       setLoading(false);
@@ -115,12 +137,12 @@ const TeacherDashboard = () => {
     try {
       const response = await axios.get('/teacher-attendance/my-history', {
         headers: { Authorization: `Bearer ${token}` },
-        timeout: 15000
+        timeout: 15000,
       });
-      
+
       setAttendance({
         records: response.data.attendance || [],
-        stats: response.data.stats || null
+        stats: response.data.stats || null,
       });
     } catch (error) {
       console.error('Error fetching attendance:', error);
@@ -136,15 +158,17 @@ const TeacherDashboard = () => {
       const uniqueStudents = [];
       const seen = new Set();
 
-      reduxResults.forEach(result => {
+      reduxResults.forEach((result) => {
         if (!seen.has(result.grNumber)) {
           seen.add(result.grNumber);
           uniqueStudents.push({
             name: result.studentName,
             grNumber: result.grNumber,
             standard: result.standard,
-            resultCount: reduxResults.filter(r => r.grNumber === result.grNumber).length,
-            lastUpdated: result.createdAt
+            resultCount: reduxResults.filter(
+              (r) => r.grNumber === result.grNumber
+            ).length,
+            lastUpdated: result.createdAt,
           });
         }
       });
@@ -166,13 +190,13 @@ const TeacherDashboard = () => {
     try {
       // Dispatch Redux logout action to clear state
       await dispatch(logoutUser()).unwrap();
-      
+
       // Clear all localStorage
       localStorage.clear();
-      
+
       // Show success message
       toast.success('Logged out successfully');
-      
+
       // Navigate to home page
       navigate('/', { replace: true });
     } catch (error) {
@@ -221,15 +245,20 @@ const TeacherDashboard = () => {
               <div>
                 {/* <h1 className="text-xl md:text-2xl font-bold text-gray-900">{teacher?.name}</h1>
                 <p className="text-xs md:text-sm text-gray-600">ID: {teacher?.employeeId}</p> */}
-                <h1 className="text-2xl font-bold text-gray-900">{teacher?.name}</h1>
-                <p className="text-sm text-gray-600">Employee ID: {teacher?.employeeId}</p>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {teacher?.name}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Employee ID: {teacher?.employeeId}
+                </p>
                 {dashboard?.teacher?.classTeacher && (
                   <p className="text-sm font-semibold text-indigo-600 mt-1">
                     Class Teacher: {dashboard.teacher.classTeacher}
                   </p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Subjects: {dashboard?.teacher?.subjects?.join(', ') || 'Loading...'}
+                  Subjects:{' '}
+                  {dashboard?.teacher?.subjects?.join(', ') || 'Loading...'}
                 </p>
                 {dashboard?.teacher?.assignedClasses?.length > 0 && (
                   <p className="text-xs text-gray-500">
@@ -253,7 +282,9 @@ const TeacherDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Students</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Students
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1">
                   {dashboard?.statistics?.totalStudents || 0}
                 </p>
@@ -267,7 +298,9 @@ const TeacherDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Classes</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Classes
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1">
                   {dashboard?.statistics?.classesTaught || 0}
                 </p>
@@ -281,7 +314,9 @@ const TeacherDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Avg %</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Avg %
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1">
                   {dashboard?.statistics?.averagePercentage || 0}%
                 </p>
@@ -295,7 +330,9 @@ const TeacherDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Results</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Results
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1">
                   {results.length}
                 </p>
@@ -309,9 +346,14 @@ const TeacherDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Leaves</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Leaves
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1">
-                  {dashboard?.statistics?.leavesTaken || 0}<span className="text-lg text-gray-500 font-normal">/{dashboard?.statistics?.yearlyLeaveLimit || 12}</span>
+                  {dashboard?.statistics?.leavesTaken || 0}
+                  <span className="text-lg text-gray-500 font-normal">
+                    /{dashboard?.statistics?.yearlyLeaveLimit || 12}
+                  </span>
                 </p>
               </div>
               <div className="bg-red-100 rounded-full p-2 hidden sm:block">
@@ -323,7 +365,9 @@ const TeacherDashboard = () => {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2 sm:px-0">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2 sm:px-0">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             <button
               onClick={() => navigate('/teacher/mark-attendance')}
@@ -332,9 +376,26 @@ const TeacherDashboard = () => {
               <div className="bg-red-100 rounded-full p-4 group-hover:bg-red-200 transition-colors">
                 <Clock className="h-8 w-8 text-red-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Mark Attendance</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Self Attendance
+              </p>
               <p className="text-xs text-gray-500 mt-1">Check-in today</p>
             </button>
+            {dashboard?.teacher?.classTeacher && (
+              <button
+                onClick={() => navigate('/teacher/students-attendance')}
+                className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-fuchsia-300 rounded-lg hover:border-fuchsia-500 hover:bg-fuchsia-50 transition-all group"
+              >
+                <div className="relative bg-fuchsia-100 rounded-full p-4 group-hover:bg-fuchsia-200 transition-colors w-16 h-16 flex items-center justify-center">
+                  <Clock className="h-8 w-8 text-fuchsia-600" />
+                  <Users className="h-5 w-5 text-fuchsia-700 absolute bottom-1 right-1 bg-white rounded-full p-[1px]" />
+                </div>
+                <p className="mt-3 text-sm font-semibold text-gray-900">
+                  Students Attendance
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Check-in today</p>
+              </button>
+            )}
 
             <button
               onClick={() => navigate('/teacher/upload-result')}
@@ -343,7 +404,9 @@ const TeacherDashboard = () => {
               <div className="bg-indigo-100 rounded-full p-4 group-hover:bg-indigo-200 transition-colors">
                 <Upload className="h-8 w-8 text-indigo-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Upload Result</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Upload Result
+              </p>
               <p className="text-xs text-gray-500 mt-1">Add single result</p>
             </button>
 
@@ -354,7 +417,9 @@ const TeacherDashboard = () => {
               <div className="bg-purple-100 rounded-full p-4 group-hover:bg-purple-200 transition-colors">
                 <FileText className="h-8 w-8 text-purple-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Bulk Results Upload</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Bulk Results Upload
+              </p>
               <p className="text-xs text-gray-500 mt-1">Upload via Excel</p>
             </button>
 
@@ -365,7 +430,9 @@ const TeacherDashboard = () => {
               <div className="bg-blue-100 rounded-full p-4 group-hover:bg-blue-200 transition-colors">
                 <UserPlus className="h-8 w-8 text-blue-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Register Student</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Register Student
+              </p>
               <p className="text-xs text-gray-500 mt-1">Add single student</p>
             </button>
 
@@ -376,7 +443,9 @@ const TeacherDashboard = () => {
               <div className="bg-green-100 rounded-full p-4 group-hover:bg-green-200 transition-colors">
                 <Users className="h-8 w-8 text-green-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Bulk Student Upload</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Bulk Student Upload
+              </p>
               <p className="text-xs text-gray-500 mt-1">Register via Excel</p>
             </button>
 
@@ -387,7 +456,9 @@ const TeacherDashboard = () => {
               <div className="bg-teal-100 rounded-full p-4 group-hover:bg-teal-200 transition-colors">
                 <Users className="h-8 w-8 text-teal-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Manage Students</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Manage Students
+              </p>
               <p className="text-xs text-gray-500 mt-1">View, edit, delete</p>
             </button>
 
@@ -398,7 +469,9 @@ const TeacherDashboard = () => {
               <div className="bg-cyan-100 rounded-full p-4 group-hover:bg-cyan-200 transition-colors">
                 <FileText className="h-8 w-8 text-cyan-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">My Results</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                My Results
+              </p>
               <p className="text-xs text-gray-500 mt-1">Results I uploaded</p>
             </button>
           </div>
@@ -410,46 +483,51 @@ const TeacherDashboard = () => {
             <nav className="flex -mb-px min-w-max">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'overview'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'overview'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 Overview
               </button>
               <button
                 onClick={() => setActiveTab('results')}
-                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'results'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'results'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 Results
               </button>
               <button
                 onClick={() => setActiveTab('students')}
-                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'students'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'students'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 Students
               </button>
               <button
                 onClick={() => setActiveTab('timetable')}
-                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'timetable'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'timetable'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 Timetable
               </button>
               <button
                 onClick={() => setActiveTab('attendance')}
-                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'attendance'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'attendance'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
               >
                 My Attendance
               </button>
@@ -460,15 +538,23 @@ const TeacherDashboard = () => {
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Results</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Recent Results
+                </h3>
                 {dashboard?.recentResults?.length > 0 ? (
                   <div className="space-y-3">
                     {dashboard.recentResults.map((result) => (
-                      <div key={result._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div
+                        key={result._id}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
                         <div>
-                          <p className="font-medium text-gray-900">{result.studentName}</p>
+                          <p className="font-medium text-gray-900">
+                            {result.studentName}
+                          </p>
                           <p className="text-sm text-gray-500">
-                            {result.grNumber} • {formatStandard(result.standard)}
+                            {result.grNumber} •{' '}
+                            {formatStandard(result.standard)}
                           </p>
                         </div>
                         <p className="text-sm text-gray-500">
@@ -490,7 +576,9 @@ const TeacherDashboard = () => {
             {activeTab === 'results' && (
               <div>
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">All Results</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    All Results
+                  </h3>
                   <button
                     onClick={() => navigate('/teacher/upload-result')}
                     className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -503,8 +591,12 @@ const TeacherDashboard = () => {
                 {results.length === 0 ? (
                   <div className="text-center py-12">
                     <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium mb-2">No results uploaded yet</p>
-                    <p className="text-sm text-gray-500 mb-4">Start by uploading your first student result</p>
+                    <p className="text-gray-600 font-medium mb-2">
+                      No results uploaded yet
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Start by uploading your first student result
+                    </p>
                     <button
                       onClick={() => navigate('/teacher/upload-result')}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
@@ -545,15 +637,28 @@ const TeacherDashboard = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {results.map((result) => {
-                          const totalMarks = result.subjects?.reduce((sum, sub) => sum + (sub.marks || 0), 0) || 0;
-                          const totalMax = result.subjects?.reduce((sum, sub) => sum + (sub.maxMarks || 100), 0) || 100;
-                          const percentage = ((totalMarks / totalMax) * 100).toFixed(1);
+                          const totalMarks =
+                            result.subjects?.reduce(
+                              (sum, sub) => sum + (sub.marks || 0),
+                              0
+                            ) || 0;
+                          const totalMax =
+                            result.subjects?.reduce(
+                              (sum, sub) => sum + (sub.maxMarks || 100),
+                              0
+                            ) || 100;
+                          const percentage = (
+                            (totalMarks / totalMax) *
+                            100
+                          ).toFixed(1);
                           const isPass = percentage >= 33;
 
                           return (
                             <tr key={result._id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="font-medium text-gray-900">{result.studentName}</div>
+                                <div className="font-medium text-gray-900">
+                                  {result.studentName}
+                                </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
@@ -570,19 +675,28 @@ const TeacherDashboard = () => {
                                 {result.subjects?.length || 0}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${isPass
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-red-100 text-red-800'
-                                  }`}>
+                                <span
+                                  className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    isPass
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
                                   {percentage}%
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(result.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  result.createdAt
+                                ).toLocaleDateString()}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <button
-                                  onClick={() => navigate(`/teacher/edit-result/${result._id}`)}
+                                  onClick={() =>
+                                    navigate(
+                                      `/teacher/edit-result/${result._id}`
+                                    )
+                                  }
                                   className="text-indigo-600 hover:text-indigo-900 mr-4"
                                   title="Edit"
                                 >
@@ -611,9 +725,13 @@ const TeacherDashboard = () => {
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">My Students</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      My Students
+                    </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      Classes: {dashboard?.teacher?.assignedClasses?.join(', ') || 'None'}
+                      Classes:{' '}
+                      {dashboard?.teacher?.assignedClasses?.join(', ') ||
+                        'None'}
                     </p>
                   </div>
                 </div>
@@ -621,8 +739,12 @@ const TeacherDashboard = () => {
                 {students.length === 0 ? (
                   <div className="text-center py-12">
                     <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium mb-2">No students yet</p>
-                    <p className="text-sm text-gray-500">Upload results to see your students here</p>
+                    <p className="text-gray-600 font-medium mb-2">
+                      No students yet
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Upload results to see your students here
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -636,14 +758,20 @@ const TeacherDashboard = () => {
                             <User className="h-6 w-6 text-indigo-600" />
                           </div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{student.name}</h4>
-                            <p className="text-sm text-gray-500">{student.grNumber}</p>
+                            <h4 className="font-medium text-gray-900">
+                              {student.name}
+                            </h4>
+                            <p className="text-sm text-gray-500">
+                              {student.grNumber}
+                            </p>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Class:</span>
-                            <span className="font-medium text-gray-900">{formatStandard(student.standard)}</span>
+                            <span className="font-medium text-gray-900">
+                              {formatStandard(student.standard)}
+                            </span>
                           </div>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Results:</span>
@@ -654,7 +782,9 @@ const TeacherDashboard = () => {
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Last Updated:</span>
                             <span className="text-gray-500 text-xs">
-                              {new Date(student.lastUpdated).toLocaleDateString()}
+                              {new Date(
+                                student.lastUpdated
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -668,39 +798,74 @@ const TeacherDashboard = () => {
             {/* Timetable Tab */}
             {activeTab === 'timetable' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Weekly Timetable</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Weekly Timetable
+                </h3>
                 {timetable && timetable.schedule ? (
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="bg-gray-50">
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase border">Day</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase border">Schedule</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase border">
+                            Day
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase border">
+                            Schedule
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+                        {[
+                          'Monday',
+                          'Tuesday',
+                          'Wednesday',
+                          'Thursday',
+                          'Friday',
+                          'Saturday',
+                        ].map((day) => (
                           <tr key={day} className="hover:bg-gray-50">
-                            <td className="px-4 py-4 font-semibold text-gray-900 border align-top">{day}</td>
+                            <td className="px-4 py-4 font-semibold text-gray-900 border align-top">
+                              {day}
+                            </td>
                             <td className="px-4 py-4 border">
-                              {timetable.schedule[day] && timetable.schedule[day].length > 0 ? (
+                              {timetable.schedule[day] &&
+                              timetable.schedule[day].length > 0 ? (
                                 <div className="space-y-2">
-                                  {timetable.schedule[day].map((period, idx) => (
-                                    <div key={idx} className="flex items-center space-x-3 bg-indigo-50 rounded-lg p-3">
-                                      <div className="flex items-center space-x-2 text-sm">
-                                        <Clock className="h-4 w-4 text-indigo-600" />
-                                        <span className="font-medium text-indigo-900">{period.timeSlot}</span>
+                                  {timetable.schedule[day].map(
+                                    (period, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex items-center space-x-3 bg-indigo-50 rounded-lg p-3"
+                                      >
+                                        <div className="flex items-center space-x-2 text-sm">
+                                          <Clock className="h-4 w-4 text-indigo-600" />
+                                          <span className="font-medium text-indigo-900">
+                                            {period.timeSlot}
+                                          </span>
+                                        </div>
+                                        <div className="text-sm">
+                                          <span className="font-semibold text-gray-900">
+                                            {period.subject}
+                                          </span>
+                                          <span className="text-gray-600">
+                                            {' '}
+                                            - {period.class}
+                                          </span>
+                                          {period.room && (
+                                            <span className="text-gray-500">
+                                              {' '}
+                                              (Room: {period.room})
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
-                                      <div className="text-sm">
-                                        <span className="font-semibold text-gray-900">{period.subject}</span>
-                                        <span className="text-gray-600"> - {period.class}</span>
-                                        {period.room && <span className="text-gray-500"> (Room: {period.room})</span>}
-                                      </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  )}
                                 </div>
                               ) : (
-                                <p className="text-sm text-gray-500 italic">No classes scheduled</p>
+                                <p className="text-sm text-gray-500 italic">
+                                  No classes scheduled
+                                </p>
                               )}
                             </td>
                           </tr>
@@ -711,24 +876,38 @@ const TeacherDashboard = () => {
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                     <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium mb-2">No Timetable Yet</p>
-                    <p className="text-sm text-gray-500 mb-4">Your timetable will be available once the admin creates it</p>
+                    <p className="text-gray-600 font-medium mb-2">
+                      No Timetable Yet
+                    </p>
+                    <p className="text-sm text-gray-500 mb-4">
+                      Your timetable will be available once the admin creates it
+                    </p>
                     <div className="mt-4 space-y-2">
                       <div>
-                        <p className="text-sm text-gray-600 mb-2">Assigned Classes:</p>
+                        <p className="text-sm text-gray-600 mb-2">
+                          Assigned Classes:
+                        </p>
                         <div className="flex flex-wrap gap-2 justify-center">
-                          {dashboard?.teacher?.assignedClasses?.map((cls, idx) => (
-                            <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm font-medium">
-                              {cls}
-                            </span>
-                          ))}
+                          {dashboard?.teacher?.assignedClasses?.map(
+                            (cls, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-sm font-medium"
+                              >
+                                {cls}
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
                       <div className="mt-4">
                         <p className="text-sm text-gray-600 mb-2">Subjects:</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                           {dashboard?.teacher?.subjects?.map((subject, idx) => (
-                            <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium">
+                            <span
+                              key={idx}
+                              className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm font-medium"
+                            >
                               {subject}
                             </span>
                           ))}
@@ -743,8 +922,10 @@ const TeacherDashboard = () => {
             {/* Attendance Tab */}
             {activeTab === 'attendance' && (
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-6">My Attendance History</h3>
-                
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                  My Attendance History
+                </h3>
+
                 {attendanceLoading ? (
                   <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
@@ -757,14 +938,26 @@ const TeacherDashboard = () => {
                       <div className="bg-white border-2 border-green-200 rounded-lg shadow-sm p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Present</p>
+                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Present
+                            </p>
                             <p className="text-2xl font-bold text-green-600 mt-1">
                               {attendance.stats.present || 0}
                             </p>
                           </div>
                           <div className="bg-green-100 rounded-full p-3">
-                            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                              className="h-6 w-6 text-green-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
                           </div>
                         </div>
@@ -773,14 +966,26 @@ const TeacherDashboard = () => {
                       <div className="bg-white border-2 border-red-200 rounded-lg shadow-sm p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Absent</p>
+                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Absent
+                            </p>
                             <p className="text-2xl font-bold text-red-600 mt-1">
                               {attendance.stats.absent || 0}
                             </p>
                           </div>
                           <div className="bg-red-100 rounded-full p-3">
-                            <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                              className="h-6 w-6 text-red-600"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
                           </div>
                         </div>
@@ -789,7 +994,9 @@ const TeacherDashboard = () => {
                       <div className="bg-white border-2 border-yellow-200 rounded-lg shadow-sm p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Half-Day</p>
+                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Half-Day
+                            </p>
                             <p className="text-2xl font-bold text-yellow-600 mt-1">
                               {attendance.stats.halfDay || 0}
                             </p>
@@ -803,10 +1010,14 @@ const TeacherDashboard = () => {
                       <div className="bg-white border-2 border-gray-200 rounded-lg shadow-sm p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Leaves</p>
+                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Leaves
+                            </p>
                             <p className="text-2xl font-bold text-gray-600 mt-1">
                               {attendance.stats.leaves || 0}
-                              <span className="text-sm text-gray-400 font-normal">/{attendance.stats.yearlyLeaveLimit || 12}</span>
+                              <span className="text-sm text-gray-400 font-normal">
+                                /{attendance.stats.yearlyLeaveLimit || 12}
+                              </span>
                             </p>
                           </div>
                           <div className="bg-gray-100 rounded-full p-3">
@@ -818,7 +1029,9 @@ const TeacherDashboard = () => {
                       <div className="bg-white border-2 border-indigo-200 rounded-lg shadow-sm p-4">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">Percentage</p>
+                            <p className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                              Percentage
+                            </p>
                             <p className="text-2xl font-bold text-indigo-600 mt-1">
                               {attendance.stats.percentage || 0}%
                             </p>
@@ -853,24 +1066,32 @@ const TeacherDashboard = () => {
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
                               {attendance.records.map((record, index) => (
-                                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <tr
+                                  key={index}
+                                  className="hover:bg-gray-50 transition-colors"
+                                >
                                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {new Date(record.date).toLocaleDateString('en-IN', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric'
-                                    })}
+                                    {new Date(record.date).toLocaleDateString(
+                                      'en-IN',
+                                      {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                      }
+                                    )}
                                   </td>
                                   <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                      record.status === 'Present'
-                                        ? 'bg-green-100 text-green-800'
-                                        : record.status === 'Absent'
-                                        ? 'bg-red-100 text-red-800'
-                                        : record.status === 'Half-Day'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
+                                    <span
+                                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        record.status === 'Present'
+                                          ? 'bg-green-100 text-green-800'
+                                          : record.status === 'Absent'
+                                            ? 'bg-red-100 text-red-800'
+                                            : record.status === 'Half-Day'
+                                              ? 'bg-yellow-100 text-yellow-800'
+                                              : 'bg-gray-100 text-gray-800'
+                                      }`}
+                                    >
                                       {record.status}
                                     </span>
                                   </td>
@@ -878,7 +1099,8 @@ const TeacherDashboard = () => {
                                     {record.time || '-'}
                                   </td>
                                   <td className="px-6 py-4 text-sm text-gray-600">
-                                    {record.remarks || (record.autoMarked ? 'Auto-marked' : '-')}
+                                    {record.remarks ||
+                                      (record.autoMarked ? 'Auto-marked' : '-')}
                                   </td>
                                 </tr>
                               ))}
@@ -889,16 +1111,24 @@ const TeacherDashboard = () => {
                     ) : (
                       <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                         <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium mb-2">No Attendance Records</p>
-                        <p className="text-sm text-gray-500">Your attendance records will appear here</p>
+                        <p className="text-gray-600 font-medium mb-2">
+                          No Attendance Records
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Your attendance records will appear here
+                        </p>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                     <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-600 font-medium mb-2">No Attendance Data</p>
-                    <p className="text-sm text-gray-500">Start marking your attendance to see your history</p>
+                    <p className="text-gray-600 font-medium mb-2">
+                      No Attendance Data
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Start marking your attendance to see your history
+                    </p>
                   </div>
                 )}
               </div>
@@ -911,4 +1141,3 @@ const TeacherDashboard = () => {
 };
 
 export default TeacherDashboard;
-

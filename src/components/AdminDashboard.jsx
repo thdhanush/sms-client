@@ -16,6 +16,7 @@ import {
   Calendar,
   UserCheck,
 } from 'lucide-react';
+
 import SystemSettingsModal from './SystemSettingsModal';
 
 const AdminDashboard = () => {
@@ -33,14 +34,14 @@ const AdminDashboard = () => {
   const [todayAttendance, setTodayAttendance] = useState({
     present: 0,
     total: 0,
-    presentTeachers: []
+    presentTeachers: [],
   });
 
   useEffect(() => {
     // Check if user is admin
     const user = JSON.parse(localStorage.getItem('user'));
     const token = localStorage.getItem('token');
-    
+
     if (!user || !token || user.role !== 'admin') {
       toast.error('Please login as admin');
       navigate('/');
@@ -55,31 +56,45 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('token');
 
       // Fetch dashboard overview, teacher performance, results activity, and today's attendance
-      const [dashboardResponse, performanceResponse, resultsResponse, attendanceResponse] = await Promise.all([
+      const [
+        dashboardResponse,
+        performanceResponse,
+        resultsResponse,
+        attendanceResponse,
+      ] = await Promise.all([
         axios.get('/admin/dashboard', {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get('/performance/teachers', {
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(err => {
-          console.error('Performance API Error:', err.response?.data || err.message);
-          return { data: { teachers: [] } }; // Fallback to empty array
-        }),
+        axios
+          .get('/performance/teachers', {
+            headers: { Authorization: `Bearer ${token}` },
+          })
+          .catch((err) => {
+            console.error(
+              'Performance API Error:',
+              err.response?.data || err.message
+            );
+            return { data: { teachers: [] } }; // Fallback to empty array
+          }),
         axios.get('/admin/results-activity', {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get('/admin/attendance/today-summary', {
           headers: { Authorization: `Bearer ${token}` },
-        })
+        }),
       ]);
 
       console.log('Performance Response:', performanceResponse.data);
 
       // Use the new dynamic performance data
       const teachersWithPerformance = performanceResponse.data.teachers || [];
-      
-      console.log('Teachers with performance:', teachersWithPerformance.length, teachersWithPerformance);
-      
+
+      console.log(
+        'Teachers with performance:',
+        teachersWithPerformance.length,
+        teachersWithPerformance
+      );
+
       if (teachersWithPerformance.length === 0) {
         console.warn('No teachers returned from performance API');
       }
@@ -88,22 +103,28 @@ const AdminDashboard = () => {
         totalStudents: dashboardResponse.data.overview?.totalStudents || 0,
         totalTeachers: dashboardResponse.data.overview?.totalTeachers || 0,
         totalResults: dashboardResponse.data.overview?.totalResults || 0,
-        avgClassPercentage: dashboardResponse.data.allTeachers?.reduce((sum, t) => sum + t.classAverage, 0) / (dashboardResponse.data.allTeachers?.length || 1) || 0,
+        avgClassPercentage:
+          dashboardResponse.data.allTeachers?.reduce(
+            (sum, t) => sum + t.classAverage,
+            0
+          ) / (dashboardResponse.data.allTeachers?.length || 1) || 0,
         teachers: teachersWithPerformance,
       });
       setResultsActivity(resultsResponse.data.activity || []);
-      
+
       // Set today's attendance data
-      const presentTeachers = attendanceResponse.data.attendance?.filter(record => 
-        record.status === 'Present' || record.status === 'Half-Day'
-      ) || [];
-      
+      const presentTeachers =
+        attendanceResponse.data.attendance?.filter(
+          (record) =>
+            record.status === 'Present' || record.status === 'Half-Day'
+        ) || [];
+
       setTodayAttendance({
         present: attendanceResponse.data.present || 0,
         total: attendanceResponse.data.total || 0,
-        presentTeachers: presentTeachers
+        presentTeachers: presentTeachers,
       });
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard:', error);
@@ -155,7 +176,9 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Students</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Students
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
                   {dashboardData.totalStudents}
                 </p>
@@ -169,7 +192,9 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Teachers</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Teachers
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
                   {dashboardData.totalTeachers}
                 </p>
@@ -183,7 +208,9 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Results</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Results
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
                   {dashboardData.totalResults}
                 </p>
@@ -197,7 +224,9 @@ const AdminDashboard = () => {
           <div className="bg-white rounded-lg shadow p-4 md:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">Avg %</p>
+                <p className="text-[10px] md:text-sm font-medium text-gray-600 uppercase tracking-wider">
+                  Avg %
+                </p>
                 <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
                   {dashboardData.avgClassPercentage?.toFixed(1) || 0}%
                 </p>
@@ -211,7 +240,9 @@ const AdminDashboard = () => {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-4 md:p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2 sm:px-0">Quick Actions</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 px-2 sm:px-0">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             <button
               onClick={handleCreateTeacher}
@@ -220,7 +251,9 @@ const AdminDashboard = () => {
               <div className="bg-indigo-100 rounded-full p-4 group-hover:bg-indigo-200 transition-colors">
                 <UserPlus className="h-8 w-8 text-indigo-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Create Teacher</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Create Teacher
+              </p>
             </button>
 
             <button
@@ -230,7 +263,9 @@ const AdminDashboard = () => {
               <div className="bg-green-100 rounded-full p-4 group-hover:bg-green-200 transition-colors">
                 <UserPlus className="h-8 w-8 text-green-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Create Student</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Create Student
+              </p>
             </button>
 
             <button
@@ -240,7 +275,9 @@ const AdminDashboard = () => {
               <div className="bg-orange-100 rounded-full p-4 group-hover:bg-orange-200 transition-colors">
                 <Users className="h-8 w-8 text-orange-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Bulk Upload</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Bulk Upload
+              </p>
             </button>
 
             <button
@@ -250,7 +287,9 @@ const AdminDashboard = () => {
               <div className="bg-blue-100 rounded-full p-4 group-hover:bg-blue-200 transition-colors">
                 <FileText className="h-8 w-8 text-blue-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Add Result</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Add Result
+              </p>
             </button>
 
             <button
@@ -260,7 +299,9 @@ const AdminDashboard = () => {
               <div className="bg-purple-100 rounded-full p-4 group-hover:bg-purple-200 transition-colors">
                 <FileText className="h-8 w-8 text-purple-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">View Results</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                View Results
+              </p>
             </button>
 
             <button
@@ -270,17 +311,35 @@ const AdminDashboard = () => {
               <div className="bg-teal-100 rounded-full p-4 group-hover:bg-teal-200 transition-colors">
                 <Award className="h-8 w-8 text-teal-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Promote Students</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Promote Students
+              </p>
             </button>
 
             <button
-              onClick={() => navigate('/admin/attendance')}
+              onClick={() => navigate('/admin/teacher-attendance')}
               className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-red-300 rounded-lg hover:border-red-500 hover:bg-red-50 transition-all group"
             >
-              <div className="bg-red-100 rounded-full p-4 group-hover:bg-red-200 transition-colors">
+              <div className="bg-red-100 rounded-full p-4 group-hover:bg-red-200 transition-all relative transform group-hover:scale-110">
                 <Clock className="h-8 w-8 text-red-600" />
+                <Users className="h-4 w-4 text-red-700 absolute bottom-1 right-1" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Teacher Attendance</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Teacher Attendance
+              </p>
+            </button>
+
+            <button
+              onClick={() => navigate('/admin/student-attendance')}
+              className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-fuchsia-300 rounded-lg hover:border-fuchsia-500 hover:bg-fuchsia-50 transition-all group"
+            >
+              <div className="bg-fuchsia-100 rounded-full p-4 group-hover:bg-fuchsia-200 transition-all relative transform group-hover:scale-110">
+                <Clock className="h-8 w-8 text-fuchsia-600" />
+                <UserCheck className="h-4 w-4 text-fuchsia-700 absolute bottom-1 right-1" />
+              </div>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Student Attendance
+              </p>
             </button>
 
             <button
@@ -290,7 +349,9 @@ const AdminDashboard = () => {
               <div className="bg-pink-100 rounded-full p-4 group-hover:bg-pink-200 transition-colors">
                 <Calendar className="h-8 w-8 text-pink-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">Holidays</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                Holidays
+              </p>
             </button>
 
             <button
@@ -300,7 +361,9 @@ const AdminDashboard = () => {
               <div className="bg-gray-100 rounded-full p-4 group-hover:bg-gray-200 transition-colors">
                 <Settings className="h-8 w-8 text-gray-600" />
               </div>
-              <p className="mt-3 text-sm font-semibold text-gray-900">System Settings</p>
+              <p className="mt-3 text-sm font-semibold text-gray-900">
+                System Settings
+              </p>
             </button>
           </div>
         </div>
@@ -309,9 +372,12 @@ const AdminDashboard = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Today's Attendance</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Today's Attendance
+              </h2>
               <p className="text-sm text-gray-500 mt-1">
-                {todayAttendance.present} of {todayAttendance.total} teachers present
+                {todayAttendance.present} of {todayAttendance.total} teachers
+                present
               </p>
             </div>
             <button
@@ -326,24 +392,41 @@ const AdminDashboard = () => {
           {/* Simple Stats Row */}
           <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-gray-900">{todayAttendance.present}</p>
-              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">Present</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {todayAttendance.present}
+              </p>
+              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">
+                Present
+              </p>
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-              <p className="text-2xl font-bold text-gray-900">{todayAttendance.total}</p>
-              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">Total</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {todayAttendance.total}
+              </p>
+              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">
+                Total
+              </p>
             </div>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
               <p className="text-2xl font-bold text-gray-900">
                 {todayAttendance.total - todayAttendance.present}
               </p>
-              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">Absent</p>
+              <p className="text-xs text-gray-600 mt-1 uppercase tracking-wide">
+                Absent
+              </p>
             </div>
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 text-center">
               <p className="text-2xl font-bold text-indigo-600">
-                {todayAttendance.total > 0 ? Math.round((todayAttendance.present / todayAttendance.total) * 100) : 0}%
+                {todayAttendance.total > 0
+                  ? Math.round(
+                      (todayAttendance.present / todayAttendance.total) * 100
+                    )
+                  : 0}
+                %
               </p>
-              <p className="text-xs text-indigo-700 mt-1 uppercase tracking-wide font-medium">Rate</p>
+              <p className="text-xs text-indigo-700 mt-1 uppercase tracking-wide font-medium">
+                Rate
+              </p>
             </div>
           </div>
 
@@ -374,11 +457,15 @@ const AdminDashboard = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-8 w-8 bg-indigo-100 rounded-full flex items-center justify-center">
                             <span className="text-indigo-600 font-medium text-sm">
-                              {record.teacherName ? record.teacherName.charAt(0).toUpperCase() : 'T'}
+                              {record.teacherName
+                                ? record.teacherName.charAt(0).toUpperCase()
+                                : 'T'}
                             </span>
                           </div>
                           <div className="ml-3">
-                            <p className="text-sm font-medium text-gray-900">{record.teacherName}</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {record.teacherName}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -389,11 +476,13 @@ const AdminDashboard = () => {
                         {record.time || '--'}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
-                          record.status === 'Present' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded ${
+                            record.status === 'Present'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
                           {record.status}
                         </span>
                       </td>
@@ -417,7 +506,9 @@ const AdminDashboard = () => {
                 <BarChart3 className="h-6 w-6 mr-2 text-indigo-600" />
                 Results Upload Activity
               </h2>
-              <p className="text-sm text-gray-600 mt-1">Track which teachers uploaded results</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Track which teachers uploaded results
+              </p>
             </div>
             <button
               onClick={() => navigate('/admin/results')}
@@ -432,24 +523,37 @@ const AdminDashboard = () => {
           <div className="space-y-4">
             {resultsActivity.length > 0 ? (
               resultsActivity.map((activity, index) => {
-                const maxUploads = Math.max(...resultsActivity.map(a => a.totalUploads));
+                const maxUploads = Math.max(
+                  ...resultsActivity.map((a) => a.totalUploads)
+                );
                 const percentage = (activity.totalUploads / maxUploads) * 100;
 
                 return (
-                  <div key={index} className="border-b border-gray-100 pb-4 last:border-0">
+                  <div
+                    key={index}
+                    className="border-b border-gray-100 pb-4 last:border-0"
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-3">
                         <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
                           <Briefcase className="h-5 w-5 text-indigo-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{activity.teacherName}</p>
-                          <p className="text-xs text-gray-500">{activity.employeeId}</p>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {activity.teacherName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {activity.employeeId}
+                          </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-indigo-600">{activity.totalUploads}</p>
-                        <p className="text-xs text-gray-500">results uploaded</p>
+                        <p className="text-lg font-bold text-indigo-600">
+                          {activity.totalUploads}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          results uploaded
+                        </p>
                       </div>
                     </div>
 
@@ -466,7 +570,12 @@ const AdminDashboard = () => {
                       <div className="flex items-center space-x-4">
                         <span className="flex items-center">
                           <Clock className="h-3 w-3 mr-1" />
-                          Last upload: {activity.lastUploadDate ? new Date(activity.lastUploadDate).toLocaleDateString() : 'N/A'}
+                          Last upload:{' '}
+                          {activity.lastUploadDate
+                            ? new Date(
+                                activity.lastUploadDate
+                              ).toLocaleDateString()
+                            : 'N/A'}
                         </span>
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
                           {activity.standardsCount || 0} standards
@@ -476,7 +585,9 @@ const AdminDashboard = () => {
                         </span>
                       </div>
                       <button
-                        onClick={() => navigate(`/admin/teacher/${activity.teacherId}`)}
+                        onClick={() =>
+                          navigate(`/admin/teacher/${activity.teacherId}`)
+                        }
                         className="text-indigo-600 hover:text-indigo-800 font-medium"
                       >
                         View Details →
@@ -502,7 +613,9 @@ const AdminDashboard = () => {
                 <BarChart3 className="h-6 w-6 mr-2 text-indigo-600" />
                 Teacher Performance Analytics
               </h2>
-              <p className="text-sm text-gray-600 mt-1">Dynamic performance tracking based on real data</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Dynamic performance tracking based on real data
+              </p>
             </div>
             <button
               onClick={handleCreateTeacher}
@@ -547,7 +660,8 @@ const AdminDashboard = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
                             <span className="text-indigo-600 font-semibold text-sm">
-                              {teacher.teacherName?.charAt(0).toUpperCase() || 'T'}
+                              {teacher.teacherName?.charAt(0).toUpperCase() ||
+                                'T'}
                             </span>
                           </div>
                           <div className="ml-4">
@@ -555,14 +669,16 @@ const AdminDashboard = () => {
                               {teacher.teacherName}
                             </div>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {teacher.subjectsHandled?.slice(0, 2).map((subject, idx) => (
-                                <span
-                                  key={idx}
-                                  className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
-                                >
-                                  {subject}
-                                </span>
-                              ))}
+                              {teacher.subjectsHandled
+                                ?.slice(0, 2)
+                                .map((subject, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+                                  >
+                                    {subject}
+                                  </span>
+                                ))}
                               {teacher.subjectsHandled?.length > 2 && (
                                 <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
                                   +{teacher.subjectsHandled.length - 2}
@@ -579,14 +695,21 @@ const AdminDashboard = () => {
                         <div className="flex items-center space-x-2">
                           {teacher.totalResultsUploaded > 0 ? (
                             <>
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
-                                teacher.performanceGrade === 'A+' ? 'bg-green-100 text-green-800' :
-                                teacher.performanceGrade === 'A' ? 'bg-green-100 text-green-700' :
-                                teacher.performanceGrade === 'B+' ? 'bg-blue-100 text-blue-700' :
-                                teacher.performanceGrade === 'B' ? 'bg-blue-100 text-blue-600' :
-                                teacher.performanceGrade === 'C' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-red-100 text-red-700'
-                              }`}>
+                              <span
+                                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-bold ${
+                                  teacher.performanceGrade === 'A+'
+                                    ? 'bg-green-100 text-green-800'
+                                    : teacher.performanceGrade === 'A'
+                                      ? 'bg-green-100 text-green-700'
+                                      : teacher.performanceGrade === 'B+'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : teacher.performanceGrade === 'B'
+                                          ? 'bg-blue-100 text-blue-600'
+                                          : teacher.performanceGrade === 'C'
+                                            ? 'bg-yellow-100 text-yellow-700'
+                                            : 'bg-red-100 text-red-700'
+                                }`}
+                              >
                                 {teacher.performanceGrade}
                               </span>
                               <span className="text-sm font-semibold text-gray-900">
@@ -606,7 +729,10 @@ const AdminDashboard = () => {
                             {teacher.totalResultsUploaded || 0} results
                           </div>
                           <div className="text-gray-500">
-                            {teacher.totalStudentsTaught || 0} {teacher.totalStudentsTaught === 1 ? 'student' : 'students'}
+                            {teacher.totalStudentsTaught || 0}{' '}
+                            {teacher.totalStudentsTaught === 1
+                              ? 'student'
+                              : 'students'}
                           </div>
                         </div>
                       </td>
@@ -621,11 +747,22 @@ const AdminDashboard = () => {
                                 </span>
                               </>
                             ) : (
-                              <span className="text-gray-400 font-medium">No data</span>
+                              <span className="text-gray-400 font-medium">
+                                No data
+                              </span>
                             )}
                           </div>
-                          <div className={teacher.passPercentage > 0 ? "text-gray-500" : "text-gray-400"}>
-                            Pass: {teacher.passPercentage > 0 ? `${teacher.passPercentage?.toFixed(1)}%` : 'N/A'}
+                          <div
+                            className={
+                              teacher.passPercentage > 0
+                                ? 'text-gray-500'
+                                : 'text-gray-400'
+                            }
+                          >
+                            Pass:{' '}
+                            {teacher.passPercentage > 0
+                              ? `${teacher.passPercentage?.toFixed(1)}%`
+                              : 'N/A'}
                           </div>
                         </div>
                       </td>
@@ -643,7 +780,9 @@ const AdminDashboard = () => {
                             </div>
                           </>
                         ) : (
-                          <span className="text-sm text-gray-400 font-medium">No attendance</span>
+                          <span className="text-sm text-gray-400 font-medium">
+                            No attendance
+                          </span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -660,8 +799,12 @@ const AdminDashboard = () => {
                   <tr>
                     <td colSpan="7" className="px-6 py-8 text-center">
                       <Briefcase className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                      <p className="text-gray-500 font-medium">No teachers found</p>
-                      <p className="text-sm text-gray-400 mt-1">Add teachers to see performance analytics</p>
+                      <p className="text-gray-500 font-medium">
+                        No teachers found
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Add teachers to see performance analytics
+                      </p>
                       <button
                         onClick={handleCreateTeacher}
                         className="mt-4 inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition text-sm"

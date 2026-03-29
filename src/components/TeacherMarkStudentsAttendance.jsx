@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AttendanceTestModal from './AttendanceTestModal';
+import { Filter, Search, X, RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const TeacherMarkStudentsAttendance = () => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,106 @@ const TeacherMarkStudentsAttendance = () => {
   const [distanceFromSchool, setDistanceFromSchool] = useState(null);
   const [showDebugModal, setShowDebugModal] = useState(false);
 
-  // School location from environment variables
+  const [students, setStudents] = useState([]);
+  const [search, setSearch] = useState('');
+  const [standardFilter, setStandardFilter] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [teacher, setTeacher] = useState(null);
+  const [currentClass, setCurrentClass] = useState(''); // Initially empty
+  const navigate = useNavigate();
+
+  const apiUrl =
+    import.meta.env.VITE_API_URL ||
+    'https://result-portal-tkom.onrender.com/api';
+
+  useEffect(() => {
+    if (teacher?.classTeacher) {
+      setCurrentClass(teacher.classTeacher); // auto-set the current class
+    }
+  }, [teacher]);
+
+  // FETCH STUDENTS
+  useEffect(() => {
+    fetchStudents();
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'teacher') {
+      toast.error('Please login first');
+      navigate('/');
+      return;
+    }
+    setTeacher(user);
+  }, [navigate]);
+
+  const fetchStudents = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiUrl}/student-management`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setStudents(data.students || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // FILTER LOGIC
+  const filteredStudents = students
+    .filter((s) => {
+      const classTeacherFilter = teacher?.classTeacher
+        ? s.standard === teacher.classTeacher
+        : true;
+
+      const searchFilter =
+        !search ||
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.grNumber.toLowerCase().includes(search.toLowerCase());
+
+      const standardFilterCheck =
+        !standardFilter || s.standard === standardFilter;
+
+      return classTeacherFilter && searchFilter && standardFilterCheck;
+    })
+    .sort((a, b) => {
+      let valA = a[sortBy];
+      let valB = b[sortBy];
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+      if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  // SELECT FUNCTIONS
+  const toggleSelectStudent = (id) => {
+    setSelectedStudents((prev) => {
+      const updated = { ...prev };
+      if (updated[id]) delete updated[id];
+      else updated[id] = 'Present';
+      const records = Object.entries(updated).map(([id, status]) => ({
+        studentId: id,
+        status,
+      }));
+      saveDraftToBackend(records);
+      return updated;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (Object.keys(selectedStudents).length === filteredStudents.length) {
+      setSelectedStudents({});
+    } else {
+      const allSelected = Object.fromEntries(
+        filteredStudents.map((s) => [s._id, 'Present'])
+      );
+      setSelectedStudents(allSelected);
+    }
+  };
+
+  // School location
   const SCHOOL_LOCATION = {
     latitude:
       parseFloat(import.meta.env.VITE_SCHOOL_LATITUDE) || 22.81713251852116,
@@ -34,15 +135,14 @@ const TeacherMarkStudentsAttendance = () => {
       parseFloat(import.meta.env.VITE_SCHOOL_ATTENDANCE_RADIUS_KM) || 3,
   };
 
-  // Check today's attendance status on component mount
+  // Check today's attendance & get location
   useEffect(() => {
     checkTodayStatus();
-    getCurrentLocation(); // Auto-fetch location on load
-  }, []);
+    getCurrentLocation();
+  }, [currentClass]);
 
-  // Calculate distance between two coordinates (Haversine formula)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Radius of the Earth in km
+    const R = 6371;
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
     const a =
@@ -52,25 +152,22 @@ const TeacherMarkStudentsAttendance = () => {
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-    return distance;
+    return R * c;
   };
 
   const checkTodayStatus = async () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
-
+    if (!token || !currentClass) return;
     try {
-      const apiUrl =
-        import.meta.env.VITE_API_URL ||
-        'https://result-portal-tkom.onrender.com/api';
-      const response = await fetch(`${apiUrl}/teacher-attendance/today`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
+      const response = await fetch(
+        `${apiUrl}/teacher-attendance/today?className=${encodeURIComponent(currentClass)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         setTodayAttendance(data.attendance);
@@ -83,9 +180,8 @@ const TeacherMarkStudentsAttendance = () => {
   const getCurrentLocation = () => {
     setLoadingLocation(true);
     setLocationError(null);
-
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser');
+      setLocationError('Geolocation not supported');
       setLoadingLocation(false);
       return;
     }
@@ -97,125 +193,108 @@ const TeacherMarkStudentsAttendance = () => {
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy,
         };
-
         setLocation(newLocation);
-
-        // Calculate distance from school
         const distance = calculateDistance(
           newLocation.latitude,
           newLocation.longitude,
           SCHOOL_LOCATION.latitude,
           SCHOOL_LOCATION.longitude
         );
-
         setDistanceFromSchool(distance);
         setLoadingLocation(false);
-
         if (distance <= SCHOOL_LOCATION.maxDistance) {
           toast.success(
             `Location verified! You are ${distance.toFixed(2)}km from school.`
           );
         } else {
           toast.error(
-            `You are ${distance.toFixed(2)}km from school. You must be within ${SCHOOL_LOCATION.maxDistance}km to mark attendance.`
+            `You are ${distance.toFixed(2)}km from school. Must be within ${SCHOOL_LOCATION.maxDistance}km.`
           );
         }
       },
       (error) => {
         setLoadingLocation(false);
-        let errorMessage = 'Unable to get location: ';
-
+        let msg = 'Unable to get location: ';
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage += 'Permission denied. Please allow location access.';
+            msg += 'Permission denied.';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage += 'Position unavailable.';
+            msg += 'Position unavailable.';
             break;
           case error.TIMEOUT:
-            errorMessage += 'Request timeout.';
+            msg += 'Timeout.';
             break;
           default:
-            errorMessage += 'Unknown error.';
-            break;
+            msg += 'Unknown error.';
         }
-
-        setLocationError(errorMessage);
-        toast.error(errorMessage);
+        setLocationError(msg);
+        toast.error(msg);
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 60000, // Cache location for 1 minute
-      }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
   };
 
-  const submitAttendance = async (e) => {
-    e.preventDefault();
+  // 🔹 Update student status & save draft immediately
+  const updateStudentStatus = (studentId, value) => {
+    setSelectedStudents((prev) => {
+      const updated = { ...prev };
+      if (!value) delete updated[studentId];
+      else updated[studentId] = value;
 
-    if (
-      status !== 'Leave' &&
-      (!location || distanceFromSchool > SCHOOL_LOCATION.maxDistance)
-    ) {
-      toast.error(
-        `You must be within ${SCHOOL_LOCATION.maxDistance}km of school to mark attendance`
-      );
-      return;
-    }
+      const records = Object.entries(updated).map(([id, status]) => ({
+        studentId: id,
+        status,
+      }));
+      saveDraftToBackend(records);
 
-    setLoading(true);
+      return updated;
+    });
+  };
 
+  const saveDraftToBackend = async (records) => {
+    if (!currentClass) return; // Must have a class selected
     try {
       const token = localStorage.getItem('token');
-      const apiUrl =
-        import.meta.env.VITE_API_URL ||
-        'https://result-portal-tkom.onrender.com/api';
-      const response = await fetch(`${apiUrl}/teacher-attendance/mark`, {
+      await fetch(`${apiUrl}/student-attendance/draft`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          status,
-          location,
-          remarks,
-        }),
+        body: JSON.stringify({ className: currentClass, records }),
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success(data.message);
-        setTodayAttendance(data.attendance);
-        setRemarks('');
-        // Auto refresh location for next use
-        getCurrentLocation();
-      } else {
-        toast.error(data.message || 'Failed to mark attendance');
-      }
-    } catch (error) {
-      console.error('Error marking attendance:', error);
-      toast.error('Network error. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Failed to save draft:', err);
     }
   };
 
-  // Check if user can mark attendance (within 3km or status is Leave)
-  const canMarkAttendance = () => {
-    if (status === 'Leave') return true;
-    return (
-      location &&
-      distanceFromSchool !== null &&
-      distanceFromSchool <= SCHOOL_LOCATION.maxDistance
-    );
+  const submitAttendanceFinal = async () => {
+    if (!currentClass) {
+      toast.error('Please select a class to submit');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiUrl}/student-attendance/submit`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ className: currentClass }),
+      });
+      const data = await res.json();
+      if (res.ok) toast.success('Attendance submitted successfully');
+      else toast.error(data.message);
+    } catch (err) {
+      console.error(err);
+      toast.error('Submit failed');
+    }
   };
 
   const getLocationStatusColor = () => {
-    if (!location) return 'text-gray-500';
-    if (distanceFromSchool === null) return 'text-gray-500';
+    if (!location || distanceFromSchool === null) return 'text-gray-500';
     return distanceFromSchool <= SCHOOL_LOCATION.maxDistance
       ? 'text-green-600'
       : 'text-red-600';
@@ -244,6 +323,7 @@ const TeacherMarkStudentsAttendance = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Header */}
           <div className="mb-8">
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1 text-center">
@@ -251,8 +331,7 @@ const TeacherMarkStudentsAttendance = () => {
                   Teacher Attendance
                 </h1>
                 <p className="text-gray-600">
-                  Mark students daily attendance with location verification for{' '}
-                  {}
+                  Mark students daily attendance with location verification
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   {new Date().toLocaleDateString('en-US', {
@@ -273,33 +352,47 @@ const TeacherMarkStudentsAttendance = () => {
             </div>
           </div>
 
-          {/* Today's Status Card */}
+          {/* Class Filter */}
+          {teacher?.classTeacher && (
+            <div className="mb-4">
+              <select
+                value={currentClass}
+                onChange={(e) => setCurrentClass(e.target.value)}
+                className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Select Class</option>
+                <option value={teacher.classTeacher}>
+                  {teacher.classTeacher}
+                </option>
+              </select>
+            </div>
+          )}
+
+          {/* Today's Status */}
           {todayAttendance && (
             <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-green-100 p-3 rounded-full">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-green-800">
-                      Attendance Already Marked
-                    </h3>
-                    <p className="text-green-600">
-                      Status: {todayAttendance.status} • Time:{' '}
-                      {formatTime(todayAttendance.checkInTime)}
+              <div className="flex items-center gap-4">
+                <div className="bg-green-100 p-3 rounded-full">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-800">
+                    Attendance Already Marked
+                  </h3>
+                  <p className="text-green-600">
+                    Status: {todayAttendance.status} • Time:{' '}
+                    {formatTime(todayAttendance.checkInTime)}
+                  </p>
+                  {todayAttendance.location && (
+                    <p className="text-green-600 text-sm">
+                      Location: {todayAttendance.location.address}
                     </p>
-                    {todayAttendance.location && (
-                      <p className="text-green-600 text-sm">
-                        Location: {todayAttendance.location.address}
-                      </p>
-                    )}
-                    {todayAttendance.remarks && (
-                      <p className="text-green-600 text-sm">
-                        Remarks: {todayAttendance.remarks}
-                      </p>
-                    )}
-                  </div>
+                  )}
+                  {todayAttendance.remarks && (
+                    <p className="text-green-600 text-sm">
+                      Remarks: {todayAttendance.remarks}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -366,88 +459,201 @@ const TeacherMarkStudentsAttendance = () => {
                   </div>
                 )}
               </div>
-
               {/* Attendance Form */}
-              <form onSubmit={submitAttendance} className="space-y-6">
-                {/* Status Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Attendance Status
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {['Present', 'Absent', 'Half-Day', 'Leave'].map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setStatus(s)}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 ${
-                          status === s
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                  {status === 'Leave' && (
-                    <p className="text-sm text-blue-600 mt-2">
-                      📍 Location verification is not required for Leave status
-                    </p>
-                  )}
-                </div>
-
-                {/* Remarks */}
-                <div>
-                  <label
-                    htmlFor="remarks"
-                    className="block text-sm font-medium text-gray-700 mb-2"
+              {/* 🔍 FILTER SECTION */}
+              <div className="bg-white border-2 border-gray-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Filter className="w-5 h-5" />
+                    Search & Filters
+                  </h3>
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="text-sm text-blue-600 hover:text-blue-700"
                   >
-                    Remarks (Optional)
-                  </label>
-                  <textarea
-                    id="remarks"
-                    value={remarks}
-                    onChange={(e) => setRemarks(e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Add any additional notes..."
-                  />
+                    {showFilters ? 'Hide' : 'Show'} Advanced Filters
+                  </button>
                 </div>
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading || !canMarkAttendance()}
-                  className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 px-6 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center gap-2"
-                >
-                  {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Search Box */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, GR number, or email..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Class Teacher Filter (only if teacher is classTeacher) */}
+                  {teacher?.classTeacher && (
+                    <select
+                      value={standardFilter}
+                      onChange={(e) => setStandardFilter(e.target.value)}
+                      className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                    >
+                      <option value={teacher.classTeacher}>
+                        {teacher.classTeacher}
+                      </option>
+                    </select>
+                  )}
+
+                  {/* Advanced Filters */}
+                  {showFilters && (
                     <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Marking Attendance...
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="w-5 h-5" />
-                      Mark Attendance
+                      <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="name">Sort by Name</option>
+                        <option value="grNumber">Sort by GR Number</option>
+                        <option value="standard">Sort by Standard</option>
+                        <option value="createdAt">
+                          Sort by Registration Date
+                        </option>
+                      </select>
+
+                      <select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                      </select>
                     </>
                   )}
-                </button>
+                </div>
 
-                {/* Location Status Warning */}
-                {status !== 'Leave' && !canMarkAttendance() && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-amber-800">
-                      <AlertTriangle className="w-5 h-5" />
-                      <span className="font-medium">
-                        {!location
-                          ? 'Please get your location to mark attendance'
-                          : `You must be within ${SCHOOL_LOCATION.maxDistance}km of school to mark attendance`}
+                {/* Active Filters */}
+                {(search || standardFilter) && (
+                  <div className="mt-4 flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-gray-600">
+                      Active filters:
+                    </span>
+                    {search && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1">
+                        Search: {search}
+                        <button
+                          onClick={() => setSearch('')}
+                          className="hover:text-blue-900"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </span>
-                    </div>
+                    )}
+                    {standardFilter && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm flex items-center gap-1">
+                        Class: {standardFilter}
+                        <button
+                          onClick={() => setStandardFilter('')}
+                          className="hover:text-blue-900"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )}
                   </div>
                 )}
-              </form>
+              </div>
+
+              {/* 📋 STUDENT GRID */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredStudents.length === 0 && (
+                  <p className="col-span-full text-center text-gray-500">
+                    No students found
+                  </p>
+                )}
+
+                {filteredStudents.map((student) => {
+                  const status = selectedStudents[student._id] || '';
+
+                  // Dynamic background based on status
+                  let bgClass = 'bg-white';
+                  if (status === 'Present') bgClass = 'bg-green-100';
+                  else if (status === 'Absent') bgClass = 'bg-red-100';
+                  else if (status === 'Half-Day') bgClass = 'bg-yellow-100';
+
+                  return (
+                    <div
+                      key={student._id}
+                      className={`${bgClass} border rounded-xl p-4 shadow-sm hover:shadow-lg transition-all duration-200 relative flex flex-col justify-between`}
+                    >
+                      {/* Reset Button */}
+                      {status && (
+                        <button
+                          onClick={() =>
+                            updateStudentStatus(student._id, undefined)
+                          }
+                          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                          title="Reset Status"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      {/* Student Info */}
+                      <div className="mb-3">
+                        <p className="font-medium text-gray-800">
+                          {student.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {student.grNumber} • {student.standard}
+                        </p>
+                      </div>
+
+                      {/* Attendance Buttons */}
+                      <div className="flex justify-between gap-2 mt-auto">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateStudentStatus(student._id, 'Present')
+                          }
+                          className={`flex-1 px-2 py-1 rounded-lg text-xs font-medium transition ${
+                            status === 'Present'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-green-200 text-green-800 hover:bg-green-300'
+                          }`}
+                        >
+                          Present
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateStudentStatus(student._id, 'Absent')
+                          }
+                          className={`flex-1 px-2 py-1 rounded-lg text-xs font-medium transition ${
+                            status === 'Absent'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-red-200 text-red-800 hover:bg-red-300'
+                          }`}
+                        >
+                          Absent
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateStudentStatus(student._id, 'Half-Day')
+                          }
+                          className={`flex-1 px-2 py-1 rounded-lg text-xs font-medium transition ${
+                            status === 'Half-Day'
+                              ? 'bg-yellow-500 text-white'
+                              : 'bg-yellow-200 text-yellow-800 hover:bg-yellow-300'
+                          }`}
+                        >
+                          Half-Day
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           )}
 
@@ -532,8 +738,6 @@ const TeacherMarkStudentsAttendance = () => {
             </div>
           </div>
         </div>
-
-        {/* Debug Modal */}
         <AttendanceTestModal
           isOpen={showDebugModal}
           onClose={() => setShowDebugModal(false)}

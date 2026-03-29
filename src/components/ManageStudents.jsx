@@ -47,7 +47,7 @@ const formatStandard = (standard) => {
   // Extract number from various formats (9, Grade-9, STD-9, Standard 9, etc.)
   const match = stdStr.match(/\d+/);
   if (match) {
-    return `STD-${match[0]}`;
+    return `STD ${match[0]}`;
   }
 
   // If no number found, return as is
@@ -889,15 +889,18 @@ const ManageStudents = () => {
                       className={`w-full px-4 py-2.5 border-2 ${editErrors.standard ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all`}
                     >
                       <option value="">Select Standard</option>
-                      <option value="Balvatika">Balvatika</option>
-                      <option value="1">STD-1</option>
-                      <option value="2">STD-2</option>
-                      <option value="3">STD-3</option>
-                      <option value="4">STD-4</option>
-                      <option value="5">STD-5</option>
-                      <option value="6">STD-6</option>
-                      <option value="7">STD-7</option>
-                      <option value="8">STD-8</option>
+                      <option value="STD 1">STD 1</option>
+                      <option value="STD 2">STD 2</option>
+                      <option value="STD 3">STD 3</option>
+                      <option value="STD 4">STD 4</option>
+                      <option value="STD 5">STD 5</option>
+                      <option value="STD 6">STD 6</option>
+                      <option value="STD 7">STD 7</option>
+                      <option value="STD 8">STD 8</option>
+                      <option value="STD 9">STD 9</option>
+                      <option value="STD 10">STD 10</option>
+                      <option value="STD 11">STD 11</option>
+                      <option value="STD 12">STD 12</option>
                     </select>
                     {editErrors.standard && (
                       <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
